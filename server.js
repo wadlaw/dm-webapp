@@ -3,8 +3,6 @@ require('dotenv').config();
 
 const express = require('express');
 const app = express();
-const fs = require('fs');
-const https = require('https');
 const bcrypt = require('bcrypt');
 const methodOverride = require('method-override');
 
@@ -91,11 +89,5 @@ function checkNotAuthenticated(req, res, next) {
     return next();
 }
 
-https.createServer({
-    key: fs.readFileSync('server.key'),
-    cert: fs.readFileSync('server.cert')
-  }, app)
-  .listen(5000, function () {
-    console.log('Example app listening on port 5000! Go to https://localhost:5000/')
-  });
+
 //app.listen(5000);
