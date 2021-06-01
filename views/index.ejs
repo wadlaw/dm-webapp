@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <title>DataMonkey</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <head>
+        
+        <nav>
+            <div class="usableNav">
+                <div class="logo">DataMonkey!</div>
+                <ul>
+                    <li>
+                        <div data-dest="thisweek" data-context="dayofweek" class="link">This Week</div>
+                    </li>
+                    <li>
+                        <div data-dest="lastweek" data-context="dayofweek" class="link">Last Week</div>
+                    </li>
+                    <li>
+                        <div data-dest="thismonth" data-context="day" class="link">This Month</div>
+                    </li>
+                    <li>
+                        <div data-dest="lastmonth" data-context="day" class="link">Last Month</div>
+                    </li>
+                    <li>
+                        <div data-dest="bymonths" data-context="month" class="link">All Months</div>
+                    </li>
+                    <li>
+                        <div data-dest="byyears" data-context="year" class="link">All Years</div>
+                    </li>
+                </ul>
+                <form action="/logout?_method=DELETE" method="POST">
+                  <button class="logout link" type="submit">Sign out</button>
+              </form>
+                
+            </div>
+            
+        </nav>
+    </head>
+    <main>
+        
+        <div class="main-content">
+          <h2 class="greeting">Hi <%= name %>!</h2>
+        
+            <div id="category-chart" class="chart-container">
+                <span id="loading-chart">Loading...</span>
+            </div>
+            <div id="category-table" class="table-container">
+                <span id="loading-table">Loading...</span>
+    
+            </div>
+        </div>
+        
+    </main>
+    <footer>
+
+    </footer>
+</body>
+</html>
+
