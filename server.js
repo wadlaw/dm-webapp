@@ -1,11 +1,10 @@
 require('dotenv').config();
 
-
 const express = require('express');
 const app = express();
 const bcrypt = require('bcrypt');
 const methodOverride = require('method-override');
-
+const path = require('path');
 
 const passport = require('passport');
 const flash = require('express-flash');
@@ -18,10 +17,9 @@ const { initialisePassport, saveUser } = require('./passport-config');
 //     id => users.find(user => user.id === id)
 // );
 initialisePassport(passport);
-
-
+app.set('views', path.join(__dirname, './views'));
 app.set('view-engine', 'ejs');
-app.use(express.static('public'))
+app.use(express.static(path.join(__dirname,'public')))
 app.use(express.urlencoded({ extended: false }));
 app.use(flash());
 app.use(session({
@@ -89,5 +87,5 @@ function checkNotAuthenticated(req, res, next) {
     return next();
 }
 
-
-//app.listen(5000);
+exports.app = app;
+// app.listen(5000);

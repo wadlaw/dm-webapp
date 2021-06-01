@@ -144,6 +144,11 @@ function drawTable(timePeriod, context) {
 const links = document.querySelectorAll("div[data-dest]")
 links.forEach(el => {
     el.addEventListener('click',function () {
+        //change 'active' view link
+
+        let elem = document.querySelector(".active");
+        if (elem !== null) elem.classList.remove("active");
+        el.classList.add("active");
         LoadPage(el.dataset.dest, el.dataset.context);
     })
 })
