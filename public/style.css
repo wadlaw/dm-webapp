@@ -64,7 +64,23 @@ button.login {
     text-decoration: none;
 
 }
-
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+.export {
+    display:flex;
+    justify-items: space-between;
+    margin-right: 15px;
+    align-items: center;
+}
+.exportlink {
+    font-size: 1.5em;
+    color: black;
+    margin-left: 5px;
+    text-decoration: none;
+}
 
 .main-content {
     width: 1200px;

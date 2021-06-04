@@ -7,6 +7,7 @@
     <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <title>DataMonkey</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/d972d00f0c.js" crossorigin="anonymous"></script>
     <script src="script.js" defer></script>
 </head>
 <body>
@@ -46,7 +47,14 @@
     <main>
         
         <div class="main-content">
-          <h2 class="greeting">Hi <%= name %>!</h2>
+          <div class="topbar">
+            <h2 class="greeting">Hi <%= name %>!</h2>
+            <div class="export">
+                <a id="csvexport" class="exportlink" href="#" title="Download as csv..."><i class="fas fa-file-csv"></i></a>
+                <a id="excelexport" class="exportlink" href="#" title="Download as xlsx..."><i class="far fa-file-excel"></i></a>
+            </div>
+          </div>
+            
         
             <div id="category-chart" class="chart-container">
                 <span id="loading-chart">Loading...</span>

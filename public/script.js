@@ -7,6 +7,14 @@ function makeElement(type = "div", classList = [], text = "", id = "", parentEle
     return element;
 }
 
+function exportLinks(timeperiod) {
+    let csv = document.getElementById("csvexport");
+    let excel = document.getElementById("excelexport");
+    csv.setAttribute('href', getDataUrl(timeperiod, "csv"));
+    excel.setAttribute('href', getDataUrl(timeperiod, "xls"));
+
+}
+
 function createTable(data, parentElement, context) {
     //get info required from data
     //1. list of all categories
@@ -113,9 +121,18 @@ function months(mth) {
     }
 }
 
+function getDataUrl(timeperiod, downloadType="") {
+    let dataURL =  `https://api.tomwhitelaw.com/sales/categorised/${timeperiod}?apikey=1234`
+    if (['csv', 'xls'].includes(downloadType.toLowerCase())) {
+        return `${dataURL}&${downloadType.toLowerCase()}=true`;
+    } else {
+        return dataURL;
+    }
+}
+
 async function getData(timeperiod) {
     try {
-        const resp = await fetch(`https://api.tomwhitelaw.com/sales/categorised/${timeperiod}?apikey=1234`);
+        const resp = await fetch(getDataUrl(timeperiod));
         //console.log(resp);
         if (resp.ok) {
             const jsonData = await resp.json();
@@ -132,6 +149,7 @@ drawTable("thismonth", "day");
 function drawTable(timePeriod, context) {
     getData(timePeriod)
     .then(data => {
+        exportLinks(timePeriod)
         createTable(data, document.getElementById("category-table"), context)
         createChart(data, "category-chart", context)
     })
