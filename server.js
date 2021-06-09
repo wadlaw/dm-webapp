@@ -40,25 +40,25 @@ app.get('/login', checkNotAuthenticated, (req, res) => {
     res.render('login.ejs');
 });
 
-app.get('/register', checkNotAuthenticated, (req, res) => {
-    res.render('register.ejs');
-});
-app.post('/register', checkNotAuthenticated, async (req, res) => {
-    try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        await saveUser(req.body.username, req.body.email, hashedPassword);
-        // users.push({
-        //     id: Date.now().toString(),
-        //     name: req.body.name,
-        //     email: req.body.email,
-        //     password: hashedPassword
-        // });
-        res.redirect('/login');
-    } catch(e) {
-        res.redirect('/register');
-    }
+// app.get('/register', checkNotAuthenticated, (req, res) => {
+//     res.render('register.ejs');
+// });
+// app.post('/register', checkNotAuthenticated, async (req, res) => {
+//     try {
+//         const hashedPassword = await bcrypt.hash(req.body.password, 10);
+//         await saveUser(req.body.username, req.body.email, hashedPassword);
+//         // users.push({
+//         //     id: Date.now().toString(),
+//         //     name: req.body.name,
+//         //     email: req.body.email,
+//         //     password: hashedPassword
+//         // });
+//         res.redirect('/login');
+//     } catch(e) {
+//         res.redirect('/register');
+//     }
     
-});
+// });
 
 app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
     successRedirect: '/',
