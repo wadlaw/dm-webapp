@@ -20,24 +20,26 @@
     </head>
     <main>
         <div class="main-content">
-            <h1>Login</h1>
-<% if (messages.error)  { %>
-    <%= messages.error %> 
-<% } %> 
-<form action="/login" method="POST">
-
-    <div>
-        <label for="email">Email</label>
-        <input type="email id="email name="email" required>
-    </div>
-    <div>
-        <label for="password">Password</label>
-        <input type="password" id="password", name="password" required>
-    </div>
-    <div>
-        <button class="login" type="submit">Login</button>
-    </div>
-</form>
+            
+            <form action="/login" method="POST">
+                <div class="login-form">
+                    <% if (messages.error)  { %>
+                        <%= messages.error %> 
+                    <% } %> 
+                    <div class="input-value">
+                        <label for="email">Email</label>
+                        <input type="email id="email name="email" required>
+                    </div>
+                    <div class="input-value">
+                        <label for="password">Password</label>
+                        <input type="password" id="password", name="password" required>
+                    </div>
+                    <div class="submit-button">
+                        <button class="login" type="submit">Login</button>
+                    </div>
+                </div>
+                
+            </form>
         </div>
     </main>
     

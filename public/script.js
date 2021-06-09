@@ -1,3 +1,5 @@
+
+
 function makeElement(type = "div", classList = [], text = "", id = "", parentElement) {
     const element = document.createElement(type);
     if (id) element.id = id;
@@ -220,9 +222,9 @@ function timeFormat(context) {
 
 function createChart(data, parentElement, context) {
     const margin = {top: 20, right: 160, bottom: 35, left: 30};
-
+    const containerHeight = 700;
     const width = 1200 - margin.left - margin.right;
-    const height = 700 - margin.top - margin.bottom;
+    const height = containerHeight - margin.top - margin.bottom;
     makeElement("div", ["datachart"], "", "data-chart", document.getElementById("category-chart"))
     const svg = d3.select("#data-chart")
         .append("svg")
@@ -237,28 +239,50 @@ function createChart(data, parentElement, context) {
     const categoryList = data.categories.map(si => { return si.Category });
     //console.log(categoryList);
     const categories = [...new Set(categoryList)].sort();
-    console.log("categories - should be unique list of the categories in the dataset");
-    console.log(categories);
-    //get array of dates in the dataset - so we can ensure we return an entries for each one
-    const dates = [...new Set(data.categories.map(si => { return si.SaleDate }))].sort();
-    console.log("dates - should be a unique, sorted list of all dates in the dataset");
-    console.log(dates);
-
-    const dataset = d3.layout.stack()(categories.map(cat => {
-    return dates.map(date => {
-        const filteredSI = data.categories.filter(si => si.Category == cat && si.SaleDate == date);
-        if (filteredSI.length == 0) return { x: parse(date), y: 0, category: cat };
-        return { x: parse(filteredSI[0].SaleDate), y: Math.round(filteredSI[0].TotalSales * 100) / 100, category: cat }
+    const categoryTotals = categories.map(cat => {
+        const reducer = (accum, current) => {
+            if (current.Category == cat) {
+                return accum + current.TotalSales;
+            } else {
+                return accum;
+            }
+        }
+        return { category: cat, totalSales: data.categories.reduce(reducer, 0) };
+        //const filteredValues = data.categories.filter(si => si.category == cat)
     })
-    //const filteredSIs = data.categories.filter(si => si.Category == cat);
-    // console.log(`filtered SI's for ${cat}`);
-    // console.log(filteredSIs);
-    // return filteredSIs.map(si =>  {
-    //   return { x: parse(si.SaleDate), y: Math.round(si.TotalSales * 100) / 100 };
-    // })
+    console.log(categoryTotals);
+    const animationDuration = 400
+    const delayBetweenBarAnimation = 10
+    const barDelay = function (d, i) { return i * delayBetweenBarAnimation; };
+    const stackedBarY = function (d) { return y(d.y0 + d.y); };
+    //const barHeight = function (d) { return y(d.y); };
+    const barHeight = function(d) { return y(d.y0) - y(d.y0 + d.y); };
+    // function to change to stacked
+    const transitionStackedBars = function (selection) {
+        selection.transition()
+        .duration(animationDuration)
+        .delay(barDelay)
+        .attr("y", stackedBarY)
+        .attr("height", barHeight);
+    };
+
+    //get array of dates in the dataset - so we can ensure we return entries for each one
+    const dates = [...new Set(data.categories.map(si => { return si.SaleDate }))].sort();
+
+    let dataset = d3.layout.stack()(categories.map(cat => {
+        return dates.map(date => {
+            const filteredSI = data.categories.filter(si => si.Category == cat && si.SaleDate == date);
+            if (filteredSI.length == 0) return { x: parse(date), y: 0, category: cat, disabled: false };
+            return { x: parse(filteredSI[0].SaleDate), 
+                     get y() { return this.disabled ? 0: Math.round(filteredSI[0].TotalSales * 100) / 100 }, 
+                     category: cat,
+                     disabled: false }
+        })
     }))
     console.log("dataset");
     console.log(dataset);
+    let numSeries = dataset.length;
+    let numEnabledSeries = numSeries;
 
     // Set x, y and colors
     const x = d3.scale.ordinal()
@@ -269,15 +293,9 @@ function createChart(data, parentElement, context) {
         .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; });  })])
         .range([height, 0]);
 
-    //const colors = ["b33040", "#d25c4d", "#f2b447", "#d9d574"];
-    //const colours = d3.scale.ordinal().domain(categories).range(d3.schemeSet3);
-    //TODO!
-    // const coloursArray = ["gold", "blue", "green", "yellow", "cyan", "grey", "lightgreen", "pink", "brown", "slateblue", "grey1", "orange", "purple", "green"];
-    // const colours = d3.scale.ordinal().domain(categories).range(coloursArray.slice(0,categories.length))
+
     const colourScale = d3.scale.category20c()
-    //console.log("colours:",colours);
-    // const colours = d3.scaleSequential(d3.interpolateBlues)
-    //   .domain([-0.5 * categories.length, 1.5 * categories.length])
+
 
     // Define and draw axes
     const yAxis = d3.svg.axis()
@@ -314,8 +332,9 @@ function createChart(data, parentElement, context) {
         .enter()
         .append("rect")
         .attr("x", function(d) { return x(d.x); })
-        .attr("y", function(d) { return y(d.y0 + d.y); })
-        .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); })
+        //.attr("y", function(d) { return y(d.y0 + d.y); })
+        .attr("y", height)
+        .attr("height", 0)
         .attr("width", x.rangeBand())
         .on("mouseover", function() { tooltip.style("display", null); })
         .on("mouseout", function() { tooltip.style("display", "none"); })
@@ -323,21 +342,38 @@ function createChart(data, parentElement, context) {
         var xPosition = d3.mouse(this)[0] - 60;
         var yPosition = d3.mouse(this)[1] - 25;
         tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+        //tooltip.select("text").text(`x: ${xPosition} y: ${yPosition}`);
         tooltip.select("text").text(d.category + " " + ccyFormat(d.y));
-        });
+        })
+        .on("click", toggleSingleSeries)
+        .call(transitionStackedBars);
   
     // Draw legend
     const legend = svg.selectAll(".legend")
         .data(categories.slice().reverse())
         .enter().append("g")
         .attr("class", "legend")
-        .attr("transform", function(d, i) { return "translate(30," + i * 19 + ")"; });
+        .attr("transform", function(d, i) { return "translate(30," + i * 21 + ")"; });
     
     legend.append("rect")
         .attr("x", width - 18)
         .attr("width", 18)
         .attr("height", 18)
-        .style("fill", function(d, i) {return colourScale(categories.length-i-1)});
+        .attr("class", function(d, i) {return "series-" + i})
+        .style("stroke-width", "2px")
+        .style("stroke", function(d, i) {return colourScale(categories.length-i-1)})
+        .style("fill", function(d, i) {return colourScale(categories.length-i-1)})
+        .on("mouseover", function() { tooltip.style("display", null); })
+        .on("mouseout", function() { tooltip.style("display", "none"); })
+        .on("mousemove", function(d, i) {
+            
+            var xPosition = d3.mouse(this)[0] - 60;
+            var yPosition = d3.mouse(this)[1] - 25;
+            let calcY = i * 21 + yPosition;
+            tooltip.attr("transform", "translate(" + xPosition + "," + calcY + ")");
+            tooltip.select("text").text(`${d}: ${ccyFormat(categoryTotals.find(cat => cat.category == d).totalSales)}`);
+        })
+        .on("click", toggleSeries);
     
     legend.append("text")
         .attr("x", width + 5)
@@ -357,7 +393,7 @@ function createChart(data, parentElement, context) {
         .attr("width", 180)
         .attr("height", 20)
         .attr("fill", "white")
-        .style("opacity", 0.5);
+        .style("opacity", 0.7);
 
     tooltip.append("text")
         .attr("x", 90)
@@ -366,6 +402,80 @@ function createChart(data, parentElement, context) {
         .attr("font-size", "12px")
         .attr("font-weight", "bold");
     
+    function toggleSeries (seriesName) {
+        let isDisabling;
+        
+        dataset.forEach(series => {
+            // let entryFound = false;
+            if (series[0].category === seriesName) {
+                // entryFound = true;
+                isDisabling = !series[0].disabled
+                //exit if only one category is being displayed
+                if (isDisabling === true && numEnabledSeries === 1) {
+                    return;
+                }
+                series.forEach(entry => {
+                    entry.disabled = isDisabling;
+                })
+
+                //toggle .disabled class on legend
+                if (isDisabling) {
+                    numEnabledSeries -= 1;
+                } else {
+                    numEnabledSeries += 1;
+                }
+                d3.select(this).classed("disabled", isDisabling);
+                
+            }
+            // if we've found the matching series, we can break out of the dataset.forEach
+            // if (entryFound) break;
+        })
+        
+        refreshChartBars();
+        
+    }
+    function toggleSingleSeries(clickedSeries) {
+        // Desired functionality: filter to show only the seriesName passed. If this is already the only
+        //one, toggle to display all.
+        //working on the assumption that if only one category is enabled, it must be the one that was clicked
+        // console.log(`toggleSingleSeries is running. seriesName parameter is:`)
+        // console.log(seriesName)
+
+        const legendCategoryIndex = categories.slice().reverse().indexOf(clickedSeries.category)
+        const classNameOfSeries = `series-${legendCategoryIndex}`
+
+        let isDisabling = (numEnabledSeries > 1);
+        if (isDisabling) {
+            dataset.forEach(series => {
+                if (series[0].category !== clickedSeries.category) {
+                    series.forEach(entry => {
+                        entry.disabled = true;
+                    })
+                }
+            })
+            // set internal variable and disabled class for legend
+            numEnabledSeries = 1;
+            d3.selectAll(`g.legend>rect:not(.${classNameOfSeries})`).classed("disabled", true)
+        } else {
+            dataset.forEach(series => {
+                series.forEach(entry => {
+                    entry.disabled = false;
+                })
+            })
+            // set internal variable and disabled class for legend
+            numEnabledSeries = categories.length;
+            d3.selectAll(`g.legend>rect`).classed("disabled", false)
+        }
+        refreshChartBars();
+    }
+
+    function refreshChartBars() {
+        // re-stack the dataset to correct y1 values with disabled groups
+        dataset = d3.layout.stack()(dataset);
+        svg.selectAll("g.cost").selectAll("rect").call(transitionStackedBars);
+    }
+    
     //remove loading span
     document.getElementById("loading-chart").remove();
 }
+
